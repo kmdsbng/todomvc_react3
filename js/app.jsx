@@ -39,6 +39,13 @@ modelProto.inform = function () {
   this.subscribers.forEach(function (subscriber) {subscriber(); });
 };
 
+modelProto.deleteTodo = function (todoToDelete) {
+  this.todos = this.todos.filter(function (todo) {
+    return todo.id !== todoToDelete.id;
+  });
+  this.inform();
+};
+
 var TodoItem = React.createClass({
   getInitialState: function () {
     return {
@@ -50,26 +57,50 @@ var TodoItem = React.createClass({
       <li className={cx({completed: this.props.todo.completed, editing: this.props.editing})}>
         <div className="view">
           <input className="toggle" type="checkbox" checked={this.props.todo.completed} />
-          <label>{this.state.todoTitle}</label>
-          <button className="destroy"></button>
+          <label
+            onDoubleClick={this. handleDoubleClick}
+            >{this.state.todoTitle}</label>
+          <button className="destroy" onClick={this.handleDelete}></button>
         </div>
-        <input className="edit" value={this.state.todoTitle} />
+        <input
+          onChange={this.handleChange}
+          className="edit" value={this.state.todoTitle} />
       </li>
     );
+  },
+  handleDelete: function (e) {
+    this.props.onDelete(this.props.todo);
+  },
+  handleDoubleClick: function (e) {
+    console.log('double click');
+    this.props.onEdit(this.props.todo);
+  },
+  handleChange: function (e) {
+    this.setState({todoTitle: e.target.value});
   }
 });
 
 var TodoApp = React.createClass({
+  getInitialState: function () {
+    return {
+      editingId: null
+    };
+  },
   render: function () {
 
-    var todoItems = this.props.model.todos.map(function (todo) {
+    var todos = this.props.model.todos;
+    console.log(todos);
+    var todoItems = todos.map(function (todo) {
       return (
         <TodoItem
+          key={todo.id}
           todo={todo}
-          editing={false}
+          editing={this.state.editingId === todo.id}
+          onDelete={this.deleteTodo}
+          onEdit={this.onEdit}
         />
       );
-    });
+    }, this);
 
     return (
       <div>
@@ -117,6 +148,12 @@ var TodoApp = React.createClass({
       this.props.model.addTodo(val);
       e.target.value = '';
     }
+  },
+  deleteTodo: function (todo) {
+    this.props.model.deleteTodo(todo);
+  },
+  onEdit: function (todo) {
+    this.setState({editingId: todo.id});
   }
 });
 
