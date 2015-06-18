@@ -185,23 +185,18 @@ var TodoApp = React.createClass({
       clearButton = <button id="clear-completed" onClick={this.clearCompleted}>Clear completed</button>;
     }
 
-    return (
-      <div>
-        <header id="header">
-          <h1>todos</h1>
-          <input
-            id="new-todo"
-            placeholder="What needs to be done?"
-            onKeyDown={this.handleKeyDown}
-          />
-        </header>
+    var main = null;
+    var footer = null;
+    if (todos.length > 0) {
+      main = (
         <section id="main">
           <input id="toggle-all" type="checkbox" onChange={this.toggleAll} checked={completedTodos.length > 0 && activeTodos.length === 0} />
           <ul id="todo-list">
             {todoItems}
           </ul>
         </section>
-
+      );
+      footer = (
         <footer id="footer">
           <span id="todo-count">
             <strong>{activeTodos.length}</strong> items left
@@ -220,6 +215,23 @@ var TodoApp = React.createClass({
           </ul>
           {clearButton}
         </footer>
+      );
+    }
+
+    return (
+      <div>
+        <header id="header">
+          <h1>todos</h1>
+          <input
+            id="new-todo"
+            placeholder="What needs to be done?"
+            onKeyDown={this.handleKeyDown}
+            autoFocus={true}
+          />
+        </header>
+        {main}
+
+        {footer}
 
       </div>
     );
