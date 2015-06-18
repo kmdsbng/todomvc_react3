@@ -46,6 +46,15 @@ modelProto.deleteTodo = function (todoToDelete) {
   this.inform();
 };
 
+modelProto.saveTodo = function (todoToSave, title) {
+  this.todos.forEach(function (todo) {
+    if (todo.id === todoToSave.id) {
+      todo.title = title;
+    }
+  });
+  this.inform();
+};
+
 var TodoItem = React.createClass({
   getInitialState: function () {
     return {
@@ -64,6 +73,8 @@ var TodoItem = React.createClass({
         </div>
         <input
           onChange={this.handleChange}
+          onKeyDown={this.handleKeyDown}
+          onBlur={this.handleBlur}
           className="edit" value={this.state.todoTitle} />
       </li>
     );
@@ -77,6 +88,26 @@ var TodoItem = React.createClass({
   },
   handleChange: function (e) {
     this.setState({todoTitle: e.target.value});
+  },
+  handleKeyDown: function (e) {
+    if (e.which === ENTER_KEY) {
+      this.saveTodo(e.target.value);
+    } else if (e.which === ESCAPE_KEY) {
+      this.setState({todoTitle: this.props.todo.title});
+      this.props.cancelEdit();
+    }
+  },
+  handleBlur: function (e) {
+    this.saveTodo(e.target.value);
+  },
+  saveTodo: function (title) {
+    title = title.trim();
+    if (title === '') {
+      this.props.onDelete(this.props.todo);
+    } else {
+      this.props.onSave(this.props.todo, title);
+    }
+    this.props.cancelEdit();
   }
 });
 
@@ -98,6 +129,8 @@ var TodoApp = React.createClass({
           editing={this.state.editingId === todo.id}
           onDelete={this.deleteTodo}
           onEdit={this.onEdit}
+          onSave={this.saveTodo}
+          cancelEdit={this.cancelEdit}
         />
       );
     }, this);
@@ -154,7 +187,14 @@ var TodoApp = React.createClass({
   },
   onEdit: function (todo) {
     this.setState({editingId: todo.id});
+  },
+  saveTodo: function (todo, val) {
+    this.props.model.saveTodo(todo, val);
+  },
+  cancelEdit: function () {
+    this.setState({editingId: null});
   }
+
 });
 
 var todoModel = new TodoModel('react-todos');
