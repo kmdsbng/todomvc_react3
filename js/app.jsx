@@ -55,6 +55,15 @@ modelProto.saveTodo = function (todoToSave, title) {
   this.inform();
 };
 
+modelProto.toggle = function (todoToToggle) {
+  this.todos.forEach(function (todo) {
+    if (todo.id === todoToToggle.id) {
+      todo.completed = !todo.completed;
+    }
+  });
+  this.inform();
+};
+
 var TodoItem = React.createClass({
   getInitialState: function () {
     return {
@@ -65,7 +74,11 @@ var TodoItem = React.createClass({
     return (
       <li className={cx({completed: this.props.todo.completed, editing: this.props.editing})}>
         <div className="view">
-          <input className="toggle" type="checkbox" checked={this.props.todo.completed} />
+          <input
+            onChange={this.handleToggle}
+            className="toggle"
+            type="checkbox"
+            checked={this.props.todo.completed} />
           <label
             onDoubleClick={this. handleDoubleClick}
             >{this.state.todoTitle}</label>
@@ -78,6 +91,9 @@ var TodoItem = React.createClass({
           className="edit" value={this.state.todoTitle} />
       </li>
     );
+  },
+  handleToggle: function (e) {
+    this.props.onToggle(this.props.todo);
   },
   handleDelete: function (e) {
     this.props.onDelete(this.props.todo);
@@ -120,7 +136,8 @@ var TodoApp = React.createClass({
   render: function () {
 
     var todos = this.props.model.todos;
-    console.log(todos);
+    var activeTodos = todos.filter(function (todo) {return !todo.completed; });
+    var completedTodos = todos.filter(function (todo) {return todo.completed; });
     var todoItems = todos.map(function (todo) {
       return (
         <TodoItem
@@ -131,9 +148,12 @@ var TodoApp = React.createClass({
           onEdit={this.onEdit}
           onSave={this.saveTodo}
           cancelEdit={this.cancelEdit}
+          onToggle={this.toggle}
         />
       );
     }, this);
+
+
 
     return (
       <div>
@@ -154,7 +174,7 @@ var TodoApp = React.createClass({
 
         <footer id="footer">
           <span id="todo-count">
-            <strong>2</strong> items left
+            <strong>{activeTodos.length}</strong> items left
           </span>
           <ul id="filters">
             <li>
@@ -193,6 +213,9 @@ var TodoApp = React.createClass({
   },
   cancelEdit: function () {
     this.setState({editingId: null});
+  },
+  toggle: function (todo) {
+    this.props.model.toggle(todo);
   }
 
 });
