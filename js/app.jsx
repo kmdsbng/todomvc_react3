@@ -64,6 +64,21 @@ modelProto.toggle = function (todoToToggle) {
   this.inform();
 };
 
+modelProto.clearCompleted = function () {
+  this.todos = this.todos.filter(function (todo) {
+    return !todo.completed;
+  });
+  this.inform();
+};
+
+modelProto.toggleAll = function () {
+  this.todos = this.todos.map(function (todo) {
+    var new_todo = app.Utils.extend({}, todo, {completed: !todo.completed});
+    return new_todo;
+  });
+  this.inform();
+};
+
 var TodoItem = React.createClass({
   getInitialState: function () {
     return {
@@ -130,15 +145,27 @@ var TodoItem = React.createClass({
 var TodoApp = React.createClass({
   getInitialState: function () {
     return {
-      editingId: null
+      editingId: null,
+      nowShowing: app.ALL_TODOS
     };
+  },
+  componentDidMount: function () {
+    var router = Router({
+      '/': this.setState.bind(this, {nowShowing: app.ALL_TODOS}),
+      '/active': this.setState.bind(this, {nowShowing: app.ACTIVE_TODOS}),
+      '/completed': this.setState.bind(this, {nowShowing: app.COMPLETED_TODOS})
+    });
+    router.init('/');
   },
   render: function () {
 
     var todos = this.props.model.todos;
     var activeTodos = todos.filter(function (todo) {return !todo.completed; });
     var completedTodos = todos.filter(function (todo) {return todo.completed; });
-    var todoItems = todos.map(function (todo) {
+    var showingTodos = this.state.nowShowing === app.ACTIVE_TODOS ? activeTodos :
+                       this.state.nowShowing === app.COMPLETED_TODOS ? completedTodos :
+                       todos;
+    var todoItems = showingTodos.map(function (todo) {
       return (
         <TodoItem
           key={todo.id}
@@ -153,7 +180,10 @@ var TodoApp = React.createClass({
       );
     }, this);
 
-
+    var clearButton = null;
+    if (completedTodos.length > 0) {
+      clearButton = <button id="clear-completed" onClick={this.clearCompleted}>Clear completed</button>;
+    }
 
     return (
       <div>
@@ -166,7 +196,7 @@ var TodoApp = React.createClass({
           />
         </header>
         <section id="main">
-          <input id="toggle-all" type="checkbox" />
+          <input id="toggle-all" type="checkbox" onChange={this.toggleAll} checked={completedTodos.length > 0 && activeTodos.length === 0} />
           <ul id="todo-list">
             {todoItems}
           </ul>
@@ -178,21 +208,27 @@ var TodoApp = React.createClass({
           </span>
           <ul id="filters">
             <li>
-              <a href="#/" className="selected">All</a>
+              <a href="#/" className={cx({selected: this.state.nowShowing === app.ALL_TODOS})}>All</a>
             </li>
             <li>
-              <a href="#/active" className="">Active</a>
+              <a href="#/active" className={cx({selected: this.state.nowShowing === app.ACTIVE_TODOS})}>Active</a>
             </li>
             <li>
-              <a href="#/completed" className="">Completed</a>
+              <a href="#/completed" className={cx({selected: this.state.nowShowing === app.COMPLETED_TODOS})}>Completed</a>
             </li>
 
           </ul>
-          <button id="clear-completed" >Clear completed</button>
+          {clearButton}
         </footer>
 
       </div>
     );
+  },
+  toggleAll: function () {
+    this.props.model.toggleAll();
+  },
+  clearCompleted: function () {
+    this.props.model.clearCompleted();
   },
   handleKeyDown: function (e) {
     if (e.which === ENTER_KEY) {
