@@ -85,6 +85,13 @@ var TodoItem = React.createClass({
       todoTitle: this.props.todo.title
     };
   },
+  componentDidUpdate: function (prevProps) {
+    if (!prevProps.editing && this.props.editing) {
+      var node = this.refs.editField.getDOMNode();
+      node.focus();
+      node.setSelectionRange(node.value.length, node.value.length);
+    }
+  },
   render: function () {
     return (
       <li className={cx({completed: this.props.todo.completed, editing: this.props.editing})}>
@@ -100,6 +107,7 @@ var TodoItem = React.createClass({
           <button className="destroy" onClick={this.handleDelete}></button>
         </div>
         <input
+          ref="editField"
           onChange={this.handleChange}
           onKeyDown={this.handleKeyDown}
           onBlur={this.handleBlur}
@@ -114,7 +122,6 @@ var TodoItem = React.createClass({
     this.props.onDelete(this.props.todo);
   },
   handleDoubleClick: function (e) {
-    console.log('double click');
     this.props.onEdit(this.props.todo);
   },
   handleChange: function (e) {
