@@ -137,6 +137,7 @@ var TodoItem = React.createClass({
       this.props.onDelete(this.props.todo);
     } else {
       this.props.onSave(this.props.todo, title);
+      this.setState({todoTitle: title});
     }
     this.props.cancelEdit();
   }
@@ -199,7 +200,7 @@ var TodoApp = React.createClass({
       footer = (
         <footer id="footer">
           <span id="todo-count">
-            <strong>{activeTodos.length}</strong> items left
+            <strong>{activeTodos.length}</strong> {app.Utils.pluralize(activeTodos.length, 'item')} left
           </span>
           <ul id="filters">
             <li>
